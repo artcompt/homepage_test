@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>BTx 시스템 — Brain Training Extension</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --orange: #ea580c;
+    --orange-light: #fb923c;
+    --purple: #7c3aed;
+    --purple-light: #a78bfa;
+    --dark: #1a1a2e;
+    --text: #1f2937;
+    --gray: #6b7280;
+    --bg-light: #f9fafb;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', '맑은 고딕', sans-serif;
+    color: var(--text);
+    background: #fff;
+    max-width: 480px;
+    margin: 0 auto;
+    overflow-x: hidden;
+  }
+
+  .hero {
+    position: relative;
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 0 0 48px;
+    border: 4px solid var(--purple);
+    overflow: hidden;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background: url('images/main_01.png') center/cover no-repeat;
+    z-index: 0;
+  }
+
+  .hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(26,26,46,0.15) 0%, rgba(26,26,46,0.55) 55%, rgba(26,26,46,0.88) 100%);
+    z-index: 1;
+  }
+
+  .hero-content { position: relative; z-index: 2; padding: 0 24px; }
+
+  .hero-tag {
+    display: inline-block;
+    background: var(--purple);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    padding: 5px 12px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+  }
+
+  .hero-title { font-size: 32px; font-weight: 900; color: #fff; line-height: 1.25; margin-bottom: 14px; word-break: keep-all; }
+  .hero-title span { color: var(--orange-light); }
+  .hero-sub { font-size: 14px; color: rgba(255,255,255,0.85); line-height: 1.7; word-break: keep-all; border-left: 3px solid var(--orange); padding-left: 12px; }
+
+  .intro { padding: 56px 24px 40px; background: #fff; }
+
+  .section-label { font-size: 11px; font-weight: 700; letter-spacing: 0.15em; color: var(--purple); text-transform: uppercase; margin-bottom: 10px; }
+
+  .intro-lead { font-size: 20px; font-weight: 800; line-height: 1.4; color: var(--text); margin-bottom: 32px; word-break: keep-all; }
+  .intro-lead em { color: var(--orange); font-style: normal; }
+
+  .brain-card { background: linear-gradient(135deg, var(--dark) 0%, #16213e 100%); border-radius: 20px; padding: 24px 22px; color: #fff; }
+  .brain-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .brain-card-title { font-size: 12px; letter-spacing: 0.1em; color: var(--purple-light); font-weight: 700; }
+  .brain-score-circle { display: flex; flex-direction: column; align-items: center; margin-bottom: 28px; }
+  .score-ring { position: relative; width: 100px; height: 100px; }
+  .score-ring svg { transform: rotate(-90deg); width: 100%; height: 100%; }
+  .score-ring-bg { fill: none; stroke: #2d2d4e; stroke-width: 10; }
+  .score-ring-fill { fill: none; stroke: var(--purple-light); stroke-width: 10; stroke-linecap: round; stroke-dasharray: 251.2; stroke-dashoffset: 33.7; }
+  .score-num { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
+  .score-num strong { display: block; font-size: 28px; font-weight: 900; color: #fff; line-height: 1; }
+  .score-num span { font-size: 11px; color: var(--purple-light); }
+  .brain-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .metric-label { font-size: 11px; color: rgba(255,255,255,0.6); margin-bottom: 5px; }
+  .metric-bar-wrap { display: flex; align-items: center; gap: 8px; }
+  .metric-bar { flex: 1; height: 6px; background: #2d2d4e; border-radius: 3px; overflow: hidden; }
+  .metric-bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--purple), var(--orange-light)); }
+  .metric-val { font-size: 12px; font-weight: 700; color: var(--orange-light); min-width: 26px; text-align: right; }
+
+  .cards-section { background: var(--orange); padding: 48px 20px; }
+  .cards-section .section-label { color: rgba(255,255,255,0.75); }
+  .cards-section-title { font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 28px; word-break: keep-all; }
+  .cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .card { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 14px; padding: 18px 12px; text-align: center; backdrop-filter: blur(4px); }
+  .card-icon { font-size: 28px; margin-bottom: 10px; line-height: 1; }
+  .card-num { font-size: 20px; font-weight: 900; color: #fff; line-height: 1; margin-bottom: 4px; }
+  .card-desc { font-size: 11px; color: rgba(255,255,255,0.85); line-height: 1.4; word-break: keep-all; }
+
+  .features { background: var(--bg-light); padding: 56px 0; }
+  .features-header { padding: 0 24px; margin-bottom: 40px; }
+  .features-title { font-size: 22px; font-weight: 800; color: var(--text); word-break: keep-all; }
+  .feature-item { margin-bottom: 40px; }
+  .feature-item:last-child { margin-bottom: 0; }
+  .feature-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; }
+  .feature-body { padding: 22px 24px; background: #fff; }
+  .feature-num { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; color: var(--orange); margin-bottom: 8px; }
+  .feature-title { font-size: 18px; font-weight: 800; color: var(--text); margin-bottom: 10px; word-break: keep-all; }
+  .feature-quote { font-size: 14px; color: var(--gray); line-height: 1.7; border-left: 3px solid var(--purple); padding-left: 12px; word-break: keep-all; }
+  .feature-item:nth-child(even) .feature-body { background: #f3f0ff; }
+  .feature-item:nth-child(even) .feature-num { color: var(--purple); }
+
+  .stats { background: var(--dark); padding: 56px 24px; }
+  .stats .section-label { color: var(--orange-light); }
+  .stats-title { font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 36px; word-break: keep-all; }
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .stat-item { border-top: 2px solid var(--orange); padding-top: 14px; }
+  .stat-num { font-size: 26px; font-weight: 900; color: var(--orange-light); line-height: 1; margin-bottom: 6px; }
+  .stat-desc { font-size: 12px; color: rgba(255,255,255,0.65); line-height: 1.5; word-break: keep-all; }
+
+  .qna { padding: 56px 24px; background: #fff; }
+  .qna-header { background: var(--purple); margin: 0 -24px 32px; padding: 32px 24px; }
+  .qna-header .section-label { color: var(--purple-light); }
+  .qna-header h2 { font-size: 22px; font-weight: 800; color: #fff; word-break: keep-all; }
+  .qna-list { display: flex; flex-direction: column; gap: 12px; }
+  .qna-item { border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; }
+  .qna-q { width: 100%; background: #fff; border: none; padding: 16px 18px; display: flex; align-items: flex-start; gap: 12px; cursor: pointer; text-align: left; font-family: inherit; font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.5; word-break: keep-all; }
+  .qna-q-icon { flex-shrink: 0; width: 22px; height: 22px; background: var(--purple); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; margin-top: 1px; }
+  .qna-a { display: none; padding: 0 18px 16px 52px; font-size: 13px; color: var(--gray); line-height: 1.7; word-break: keep-all; }
+  .qna-item.open .qna-a { display: block; }
+  .qna-item.open { border-color: var(--purple); }
+  .qna-item.open .qna-q { color: var(--purple); }
+
+  .cta { background: linear-gradient(135deg, var(--orange) 0%, #c2410c 100%); padding: 56px 24px 64px; text-align: center; }
+  .cta-label { font-size: 11px; font-weight: 700; letter-spacing: 0.15em; color: rgba(255,255,255,0.75); margin-bottom: 14px; }
+  .cta-title { font-size: 24px; font-weight: 900; color: #fff; line-height: 1.35; margin-bottom: 10px; word-break: keep-all; }
+  .cta-sub { font-size: 13px; color: rgba(255,255,255,0.8); margin-bottom: 32px; line-height: 1.6; word-break: keep-all; }
+  .cta-btn { display: inline-block; background: #fff; color: var(--orange); font-family: inherit; font-size: 15px; font-weight: 800; text-decoration: none; padding: 16px 28px; border-radius: 50px; box-shadow: 0 8px 24px rgba(0,0,0,0.25); transition: transform 0.15s, box-shadow 0.15s; }
+  .cta-btn:active { transform: scale(0.97); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+  .cta-divider { width: 40px; height: 2px; background: rgba(255,255,255,0.4); margin: 36px auto 24px; }
+  .cta-company { font-size: 12px; color: rgba(255,255,255,0.75); line-height: 1.8; }
+  .cta-company strong { color: #fff; }
+
+  footer { background: #111827; padding: 24px; text-align: center; font-size: 11px; color: rgba(255,255,255,0.4); line-height: 1.8; }
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <div class="hero-tag">9988 BTx SYSTEM</div>
+    <h1 class="hero-title">BTx 시스템 소개<br><span>브레인 트레이닝</span>의<br>새로운 기준</h1>
+    <p class="hero-sub">Brain Training Extension —<br>시니어 인지훈련의 디지털 표준</p>
+  </div>
+</section>
+
+<section class="intro">
+  <div class="section-label">ABOUT BTx</div>
+  <p class="intro-lead">당신의 두뇌가 젊어지는 순간<br><em>BTx가 함께합니다</em></p>
+  <div class="brain-card">
+    <div class="brain-card-header">
+      <span class="brain-card-title">BRAIN SCORE DASHBOARD</span>
+    </div>
+    <div class="brain-score-circle">
+      <div class="score-ring">
+        <svg viewBox="0 0 100 100">
+          <circle class="score-ring-bg" cx="50" cy="50" r="40"/>
+          <circle class="score-ring-fill" cx="50" cy="50" r="40"/>
+        </svg>
+        <div class="score-num"><strong>87</strong><span>/100</span></div>
+      </div>
+    </div>
+    <div class="brain-metrics">
+      <div class="metric-item">
+        <div class="metric-label">인지훈련</div>
+        <div class="metric-bar-wrap">
+          <div class="metric-bar"><div class="metric-bar-fill" style="width:90%"></div></div>
+          <span class="metric-val">90</span>
+        </div>
+      </div>
+      <div class="metric-item">
+        <div class="metric-label">기억력</div>
+        <div class="metric-bar-wrap">
+          <div class="metric-bar"><div class="metric-bar-fill" style="width:85%"></div></div>
+          <span class="metric-val">85</span>
+        </div>
+      </div>
+      <div class="metric-item">
+        <div class="metric-label">반응속도</div>
+        <div class="metric-bar-wrap">
+          <div class="metric-bar"><div class="metric-bar-fill" style="width:78%"></div></div>
+          <span class="metric-val">78</span>
+        </div>
+      </div>
+      <div class="metric-item">
+        <div class="metric-label">정서안정</div>
+        <div class="metric-bar-wrap">
+          <div class="metric-bar"><div class="metric-bar-fill" style="width:92%"></div></div>
+          <span class="metric-val">92</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cards-section">
+  <div class="section-label">BTx FEATURES</div>
+  <h2 class="cards-section-title">왜 BTx인가요?</h2>
+  <div class="cards-grid">
+    <div class="card">
+      <div class="card-icon">🧩</div>
+      <div class="card-num">40종</div>
+      <div class="card-desc">앱 완비</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🤖</div>
+      <div class="card-num">AI</div>
+      <div class="card-desc">난이도 조절</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📊</div>
+      <div class="card-num">DATA</div>
+      <div class="card-desc">과학적 증명</div>
+    </div>
+  </div>
+</section>
+
+<section class="features">
+  <div class="features-header">
+    <div class="section-label">BTx DETAIL</div>
+    <h2 class="features-title">BTx 시스템의<br>핵심 기능</h2>
+  </div>
+  <div class="feature-item">
+    <img src="images/sub_01.png" alt="과학적 설계" class="feature-img">
+    <div class="feature-body">
+      <div class="feature-num">FEATURE 01</div>
+      <h3 class="feature-title">과학적 설계</h3>
+      <p class="feature-quote">바둑이 뇌를 키우듯 BTx가 키웁니다</p>
+    </div>
+  </div>
+  <div class="feature-item">
+    <img src="images/sub_02.png" alt="전문가 코칭" class="feature-img">
+    <div class="feature-body">
+      <div class="feature-num">FEATURE 02</div>
+      <h3 class="feature-title">전문가 코칭</h3>
+      <p class="feature-quote">국가공인 전문가가 함께합니다</p>
+    </div>
+  </div>
+  <div class="feature-item">
+    <img src="images/sub_03.png" alt="무한한 가능성" class="feature-img">
+    <div class="feature-body">
+      <div class="feature-num">FEATURE 03</div>
+      <h3 class="feature-title">무한한 가능성</h3>
+      <p class="feature-quote">B2C·B2B·B2G 모든 채널로 확장합니다</p>
+    </div>
+  </div>
+</section>
+
+<section class="stats">
+  <div class="section-label">MARKET DATA</div>
+  <h2 class="stats-title">왜 지금 시니어<br>인지훈련인가?</h2>
+  <div class="stats-grid">
+    <div class="stat-item">
+      <div class="stat-num">2,123만</div>
+      <div class="stat-desc">국내 65세 이상<br>시니어 인구</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">400만</div>
+      <div class="stat-desc">국내 경도인지장애<br>잠재 대상자</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">20조원</div>
+      <div class="stat-desc">국내 치매 관련<br>연간 사회 비용</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">190억$</div>
+      <div class="stat-desc">글로벌 브레인<br>트레이닝 시장 규모</div>
+    </div>
+  </div>
+</section>
+
+<section class="qna">
+  <div class="qna-header">
+    <div class="section-label">FAQ</div>
+    <h2>자주 묻는 질문</h2>
+  </div>
+  <div class="qna-list">
+    <div class="qna-item">
+      <button class="qna-q" onclick="toggleQna(this)">
+        <span class="qna-q-icon">Q</span>BTx 시스템은 어떤 분들에게 적합한가요?
+      </button>
+      <div class="qna-a">50세 이상 시니어부터 경도인지장애 고위험군까지 폭넓게 활용 가능합니다. 치매 예방, 뇌건강 유지, 인지기능 향상을 원하는 모든 분께 적합합니다.</div>
+    </div>
+    <div class="qna-item">
+      <button class="qna-q" onclick="toggleQna(this)">
+        <span class="qna-q-icon">Q</span>40종 앱은 어떤 분야를 커버하나요?
+      </button>
+      <div class="qna-a">기억력·집중력·언어능력·시공간능력·실행기능·정서안정 등 6개 인지 도메인을 균형 있게 훈련하는 콘텐츠로 구성되어 있습니다.</div>
+    </div>
+    <div class="qna-item">
+      <button class="qna-q" onclick="toggleQna(this)">
+        <span class="qna-q-icon">Q</span>AI 난이도 조절은 어떻게 작동하나요?
+      </button>
+      <div class="qna-a">훈련 결과 데이터를 분석해 개인의 인지 수준에 맞는 난이도를 실시간으로 자동 조정합니다. 너무 쉽거나 어렵지 않은 최적의 도전 수준을 유지합니다.</div>
+    </div>
+    <div class="qna-item">
+      <button class="qna-q" onclick="toggleQna(this)">
+        <span class="qna-q-icon">Q</span>전문가 코칭 서비스는 별도 비용이 있나요?
+      </button>
+      <div class="qna-a">파일럿 프로그램 참여 기관에는 국가공인 브레인트레이너의 초기 설정 및 운영 컨설팅이 포함됩니다. 상세 내용은 문의를 통해 안내드립니다.</div>
+    </div>
+    <div class="qna-item">
+      <button class="qna-q" onclick="toggleQna(this)">
+        <span class="qna-q-icon">Q</span>B2B·B2G 도입은 어떻게 진행되나요?
+      </button>
+      <div class="qna-a">요양원·병원·지자체·보건소 등 기관 단위 도입을 지원합니다. 기관 규모와 목적에 맞는 맞춤형 패키지를 제안해 드립니다.</div>
+    </div>
+    <div class="qna-item">
+      <button class="qna-q" onclick="toggleQna(this)">
+        <span class="qna-q-icon">Q</span>효과는 얼마 만에 나타나나요?
+      </button>
+      <div class="qna-a">개인차가 있지만 일반적으로 8~12주 꾸준한 훈련 후 Brain Score 향상이 측정됩니다. 임상 연구 기반의 훈련 프로토콜을 따릅니다.</div>
+    </div>
+    <div class="qna-item">
+      <button class="qna-q" onclick="toggleQna(this)">
+        <span class="qna-q-icon">Q</span>파일럿 프로그램 신청 방법은?
+      </button>
+      <div class="qna-a">아래 문의하기 버튼을 눌러 이메일로 연락해 주세요. 담당자가 2영업일 내에 상세 안내를 드립니다.</div>
+    </div>
+  </div>
+</section>
+
+<section class="cta">
+  <div class="cta-label">GET STARTED</div>
+  <h2 class="cta-title">지금 바로<br>BTx를 경험하세요</h2>
+  <p class="cta-sub">파일럿 프로그램 참여 기관을 모집합니다.<br>첫 번째 변화는 문의에서 시작됩니다.</p>
+  <a href="mailto:contact@vibeedu.co.kr" class="cta-btn">파일럿 프로그램 문의하기</a>
+  <div class="cta-divider"></div>
+  <div class="cta-company">
+    <strong>바이브에듀</strong><br>
+    브레인트레이너 이중구 이사<br>
+    자격번호 14-BT-000035<br>
+    contact@vibeedu.co.kr
+  </div>
+</section>
+
+<footer>
+  © 2025 바이브에듀 · BTx System. All rights reserved.<br>
+  Brain Training Extension — 시니어 인지훈련의 디지털 표준
+</footer>
+
+<script>
+  function toggleQna(btn) {
+    var item = btn.closest('.qna-item');
+    var isOpen = item.classList.contains('open');
+    document.querySelectorAll('.qna-item.open').forEach(function(el) {
+      el.classList.remove('open');
+    });
+    if (!isOpen) item.classList.add('open');
+  }
+</script>
+
+</body>
+</html>
